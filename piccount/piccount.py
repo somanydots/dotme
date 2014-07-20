@@ -9,7 +9,6 @@ from time import sleep, time
 
 PORT = "/dev/ttyACM0"
 SPEED = 38400
-URL = "xxx"
 AUTH_FILE = "auth.json"
 
 
@@ -18,24 +17,25 @@ def main():
         auth = json.loads(f.read())
     print auth
     auth_tuple = (auth['user'], auth['pass'])
-
+    url = auth['url']
     ser = serial.Serial(PORT, SPEED)
-    sleep(5)
-    ser.write(" \n")
+    sleep(1)
+    ser.write("space cash \n")
     last_count = 0
     sleeptime = 1
+
     while True:
-        count = requests.get(URL,
-                             auth=auth_tuple).json()['count']
-        print time(), count, last_count, sleeptime
-        if count != last_count:
-            ser.write("SPACE CA$H\n")
-            sleep(.25)
-        ser.write('PICS: %i\n' % count)
-        if count == last_count:
-            sleeptime = 60 if sleeptime > 60 else sleeptime * 2
+        response = requests.get(url, auth=auth_tuple)
+        if response.ok:
+            count = response.json()['count']
+            ser.write('PICS: %i\n' % count)
         else:
-            sleeptime = 1
+            ser.write(':( %s\n' % response.status_code)
+        print time(), count, last_count, sleeptime
+        if count == last_count:
+            sleeptime = 20 if sleeptime > 20 else sleeptime * 1.5
+        else:
+            sleeptime = 1.5
         sleep(sleeptime)
 
         last_count = count
