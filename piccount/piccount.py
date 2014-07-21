@@ -25,19 +25,26 @@ def main():
     sleeptime = 1
 
     while True:
-        response = requests.get(url, auth=auth_tuple)
-        if response.ok:
-            count = response.json()['count']
-            ser.write('PICS: %i\n' % count)
-        else:
-            ser.write(':( %s\n' % response.status_code)
-        print time(), count, last_count, sleeptime
-        if count == last_count:
-            sleeptime = 20 if sleeptime > 20 else sleeptime * 1.5
-        else:
-            sleeptime = 1.5
-        sleep(sleeptime)
+        try:
+            response = requests.get(url,
+                                    auth=auth_tuple,
+                                    timeout=1)
+            if response.ok:
+                count = response.json()['count']
+                ser.write('PICS: %i\n' % count)
+            else:
+                ser.write(':( %s\n' % response.status_code)
+            print time(), count, last_count, sleeptime
+            if count == last_count:
+                sleeptime = 20 if sleeptime > 20 else sleeptime * 1.5
+            else:
+                sleeptime = 1.5
+        except requests.exceptions.RequestException as e:
+            ser.write('network? \n')
+            print time(), count, last_count, sleeptime, " error %s" % e
+            sleeptime = 5
 
+        sleep(sleeptime)
         last_count = count
 
 if __name__ == "__main__":
