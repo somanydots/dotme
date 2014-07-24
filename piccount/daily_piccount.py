@@ -6,7 +6,7 @@ import serial
 import requests
 import json
 from time import sleep, time
-
+from datetime import date
 PORT = "/dev/ttyACM0"
 SPEED = 38400
 AUTH_FILE = "auth.json"
@@ -25,8 +25,13 @@ def main():
     sleeptime = 1
 
     while True:
+        today = date.today().isoformat()
         try:
-            response = requests.get(url, auth=auth_tuple, timeout=20)
+            response = requests.get(url,
+                                    auth=auth_tuple,
+                                    timeout=20,
+                                    params={
+                                        'uploaded_after': today})
             if response.ok:
                 count = response.json()['count']
                 ser.write('pics: %i\n' % count)
